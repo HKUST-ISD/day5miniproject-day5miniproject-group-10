@@ -4,14 +4,14 @@
 #include "NewPing.h"
 
 // define ultrasonic pins
-#define TRIG_PIN   ?       
-#define ECHO_PIN    ?     
+#define TRIG_PIN   4       
+#define ECHO_PIN   5     
 
 // define buzzer pin ？
-#define BUZZER_PIN  ？   
+#define BUZZER_PIN  35   
 
 //Define Built-in LED pin
-#define LED_PIN ？      
+#define LED_PIN 2      
 
 // Maximum distance we want to ping for (in centimeters).
 #define MAX_DISTANCE 400
@@ -69,32 +69,60 @@ int noteDurations_low[] = {
 
 void setup() {
 
-  // initialize serial monitor
-     ???
- // set pins mode
-    ???
+Serial.begin(9600);
+
+pinMode(LED_PIN, OUTPUT);
+pinMode(BUZZER_PIN, OUTPUT);
  
   
 }
 
-void loop() { 
+void loop() {
   // Get the distance from the Ultrasonic Sensor
-    float distance = sonar.ping_cm();
-  
-      if (distance > 10 ) {
-        // turn on built in LED
-        ???
-      } else if (distance <= 10 && distance >= 5) {
-        // turn off built in LED
-        ???
-        // play high tone Jingle-Bells Iterate over the notes of the melody_high:
-        ???
-      } else if (distance <5 ) {
-        // turn off built in LED
-        ???
-        // play low tone Jingle-Bells Iterate over the notes of the melody_low
-        ???
-   
-} 
-  delay(?);
+  distance = sonar.ping_cm();  // 0 sometimes means "no echo"
+
+  Serial.print("Distance: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+
+  if (distance > 10 || distance == 0) {
+    // turn on built in LED
+    digitalWrite(LED_PIN, HIGH);
+
+  } else if (distance <= 10 && distance >= 5) {
+    // turn off built in LED
+    digitalWrite(LED_PIN, LOW);
+
+    // play high tone Jingle-Bells
+    int notes = min(
+      (int)(sizeof(melody_high) / sizeof(melody_high[0])),
+      (int)(sizeof(noteDurations_high) / sizeof(noteDurations_high[0]))
+    );
+
+    for (int thisNote = 0; thisNote < notes; thisNote++) {
+      int noteDuration = 1000 / noteDurations_high[thisNote];
+      tone(BUZZER_PIN, melody_high[thisNote], noteDuration);
+      delay((int)(noteDuration * 1.30));
+      noTone(BUZZER_PIN);
+    }
+
+  } else if (distance < 5) {
+    // turn off built in LED
+    digitalWrite(LED_PIN, LOW);
+
+    // play low tone Jingle-Bells
+    int notes = min(
+      (int)(sizeof(melody_low) / sizeof(melody_low[0])),
+      (int)(sizeof(noteDurations_low) / sizeof(noteDurations_low[0]))
+    );
+
+    for (int thisNote = 0; thisNote < notes; thisNote++) {
+      int noteDuration = 1000 / noteDurations_low[thisNote];
+      tone(BUZZER_PIN, melody_low[thisNote], noteDuration);
+      delay((int)(noteDuration * 1.30));
+      noTone(BUZZER_PIN);
+    }
+  }
+
+  delay(200); // small pause so distance reading isn't spammy
 }
